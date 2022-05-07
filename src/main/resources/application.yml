@@ -1,21 +1,24 @@
 spring:
   datasource:
-    #    url: jdbc:h2:mem:test_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    url: jdbc:mysql://localhost:3306/jobfinderdb?createDatabaseIfNotExist=true
-    username: root
-    password: 851644
+    #    url: ec2-3-217-113-25.compute-1.amazonaws.com
+    #    url: jdbc:mysql://localhost:3306/jobfinderdb?createDatabaseIfNotExist=true
+    url: jdbc:postgresql://ec2-3-217-113-25.compute-1.amazonaws.com:5432/de6eljg77hr001
+    username: hfefeurrpbpjrc
+    password: 4daa2e1c38716227cae1f47daba33cd3b421a28640e125c11c35bfb3739bb255
+    driver-class-name: org.postgresql.Driver
   tomcat:
-    max-wait: 20000
-    max-active: 50
-    max-idle: 20
-    min-idle: 15
+    max-active: 10
+    max-idle: 5
+    min-idle: 2
+    remove-abandoned: true
+    initial-size: 5
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
         #        dialect: org.hibernate.dialect.H2Dialect
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        #        dialect: org.hibernate.dialect.MySQL8Dialect
         format_sql: true
         id:
           new_generator_mappings: false

@@ -31,20 +31,20 @@ public class JwtAuthServiceApp implements CommandLineRunner {
 
     @Override
     public void run(String... params) {
-        AppUser admin = new AppUser();
-        admin.setUsername("admin");
-        admin.setPassword("admin");
-        admin.setEmail("admin@email.com");
-        admin.setAppUserRoles(new ArrayList<>(Arrays.asList(AppUserRole.ROLE_ADMIN)));
-
-        userService.signup(admin);
-
-        AppUser client = new AppUser();
-        client.setUsername("client");
-        client.setPassword("client");
-        client.setEmail("client@email.com");
-        client.setAppUserRoles(new ArrayList<>(Arrays.asList(AppUserRole.ROLE_CLIENT)));
-
-        userService.signup(client);
+//        AppUser admin = new AppUser();
+//        admin.setUsername("admin");
+//        admin.setPassword("admin");
+//        admin.setEmail("admin@email.com");
+//        admin.setAppUserRoles(new ArrayList<>(Arrays.asList(AppUserRole.ROLE_ADMIN)));
+//
+//        userService.signup(admin);
+//
+//        AppUser client = new AppUser();
+//        client.setUsername("client");
+//        client.setPassword("client");
+//        client.setEmail("client@email.com");
+//        client.setAppUserRoles(new ArrayList<>(Arrays.asList(AppUserRole.ROLE_CLIENT)));
+//
+//        userService.signup(client);
     }
 }
