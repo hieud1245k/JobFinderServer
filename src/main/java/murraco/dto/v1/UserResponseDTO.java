@@ -1,4 +1,4 @@
-package murraco.dto;
+package murraco.dto.v1;
 
 import java.util.List;
 

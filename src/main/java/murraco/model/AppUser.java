@@ -14,7 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.Size;
 
-@Entity
+@Entity(name = "app_users")
 @Data // Create getters and setters
 @NoArgsConstructor
 public class AppUser {
