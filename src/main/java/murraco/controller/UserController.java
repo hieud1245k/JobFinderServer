@@ -10,12 +10,16 @@ import murraco.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @Api(tags = "users")
 @RequiredArgsConstructor
 public class UserController {
@@ -23,7 +27,7 @@ public class UserController {
     private final UserService userService;
     private final ModelMapper modelMapper;
 
-    @PostMapping("/signin")
+    @PostMapping("/sign-in")
     @ApiOperation(value = "${UserController.signin}")
     @ApiResponses(value = {//
             @ApiResponse(code = 400, message = "Something went wrong"), //
@@ -32,7 +36,7 @@ public class UserController {
         return ResponseEntity.ok(userService.signin(user.getUsername(), user.getPassword()));
     }
 
-    @PostMapping("/signup")
+    @PostMapping("/sign-up")
     @ApiOperation(value = "${UserController.signup}")
     @ApiResponses(value = {//
             @ApiResponse(code = 400, message = "Something went wrong"), //
@@ -67,14 +71,14 @@ public class UserController {
         return modelMapper.map(userService.search(username), UserResponseDTO.class);
     }
 
-    @GetMapping(value = "/me")
+    @GetMapping(value = "/profile")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CLIENT')")
     @ApiOperation(value = "${UserController.me}", response = UserResponseDTO.class, authorizations = {@Authorization(value = "apiKey")})
     @ApiResponses(value = {//
             @ApiResponse(code = 400, message = "Something went wrong"), //
             @ApiResponse(code = 403, message = "Access denied"), //
             @ApiResponse(code = 500, message = "Expired or invalid JWT token")})
-    public UserResponseDTO whoami(HttpServletRequest req) {
+    public UserResponseDTO getProfile(HttpServletRequest req) {
         return modelMapper.map(userService.whoami(req), UserResponseDTO.class);
     }
 
@@ -82,5 +86,14 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CLIENT')")
     public String refresh(HttpServletRequest req) {
         return userService.refresh(req.getRemoteUser());
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            new SecurityContextLogoutHandler().logout(request, response, auth);
+        }
+        return ResponseEntity.ok().build();
     }
 }

@@ -8,7 +8,9 @@ import murraco.model.AppUserRole;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -39,14 +41,16 @@ public class UserService {
         }
     }
 
-    public String signup(AppUser appUser) {
+    public LoginRes signup(AppUser appUser) {
         if (!userRepository.existsByUsername(appUser.getUsername())) {
             appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
             appUser.setAppUserRoles(new ArrayList<AppUserRole>() {{
                 add(AppUserRole.ROLE_CLIENT);
             }});
             userRepository.save(appUser);
-            return jwtTokenProvider.createToken(appUser.getUsername(), appUser.getAppUserRoles());
+            return LoginRes.builder()
+                    .accessToken(jwtTokenProvider.createToken(appUser.getUsername(), appUser.getAppUserRoles()))
+                    .build();
         } else {
             throw new CustomException("Username is already in use", HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -71,5 +75,4 @@ public class UserService {
     public String refresh(String username) {
         return jwtTokenProvider.createToken(username, userRepository.findByUsername(username).getAppUserRoles());
     }
-
 }
