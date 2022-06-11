@@ -8,5 +8,4 @@ public enum AppUserRole implements GrantedAuthority {
   public String getAuthority() {
     return name();
   }
-
 }
