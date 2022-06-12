@@ -19,6 +19,18 @@ spring:
         format_sql: true
         id:
           new_generator_mappings: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: hieuminh22690@gmail.com
+    password: qdeaimyepbtntnmn
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
 
 server:
   port: 8080 # This is the default port anyway, but you can change it here

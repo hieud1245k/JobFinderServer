@@ -28,6 +28,8 @@ public class UserService {
 
     private final UserActiveRepository userActiveRepository;
 
+    private final EmailService emailService;
+
     public LoginRes signIn(String username, String password) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
@@ -44,7 +46,14 @@ public class UserService {
             appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
             userRepository.save(appUser);
 
-            userActiveRepository.save(new UserActive(appUser.getId()));
+            UserActive userActive = new UserActive(appUser.getId());
+             userActiveRepository.save(userActive);
+
+            emailService.sendSimpleMessage(
+                    appUser.getEmail(),
+                    userActive.getActiveCode().toString(),
+                    "Your code: " + userActive.getActiveCode().toString()
+            );
 
             return LoginRes.builder()
                     .accessToken(jwtTokenProvider.createToken(appUser.getUsername(), appUser.getAppUserRole()))
