@@ -1,25 +1,21 @@
 package murraco.service;
 
-import javax.servlet.http.HttpServletRequest;
-
 import lombok.RequiredArgsConstructor;
 import murraco.dto.v1.LoginRes;
-import murraco.model.AppUserRole;
+import murraco.exception.CustomException;
+import murraco.model.AppUser;
+import murraco.model.UserActive;
+import murraco.repository.UserActiveRepository;
+import murraco.repository.UserRepository;
+import murraco.security.JwtTokenProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import murraco.exception.CustomException;
-import murraco.model.AppUser;
-import murraco.repository.UserRepository;
-import murraco.security.JwtTokenProvider;
-
-import java.util.ArrayList;
+import javax.servlet.http.HttpServletRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -30,11 +26,13 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
 
-    public LoginRes signin(String username, String password) {
+    private final UserActiveRepository userActiveRepository;
+
+    public LoginRes signIn(String username, String password) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
             return LoginRes.builder()
-                    .accessToken(jwtTokenProvider.createToken(username, userRepository.findByUsername(username).getAppUserRoles()))
+                    .accessToken(jwtTokenProvider.createToken(username, userRepository.findByUsername(username).getAppUserRole()))
                     .build();
         } catch (AuthenticationException e) {
             throw new CustomException("Invalid username/password supplied", HttpStatus.UNPROCESSABLE_ENTITY);
@@ -44,12 +42,13 @@ public class UserService {
     public LoginRes signup(AppUser appUser) {
         if (!userRepository.existsByUsername(appUser.getUsername())) {
             appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
-            appUser.setAppUserRoles(new ArrayList<AppUserRole>() {{
-                add(AppUserRole.ROLE_CLIENT);
-            }});
             userRepository.save(appUser);
+
+            userActiveRepository.save(new UserActive(appUser.getId()));
+
             return LoginRes.builder()
-                    .accessToken(jwtTokenProvider.createToken(appUser.getUsername(), appUser.getAppUserRoles()))
+                    .accessToken(jwtTokenProvider.createToken(appUser.getUsername(), appUser.getAppUserRole()))
+                    .userRole(appUser.getAppUserRole().getIndex())
                     .build();
         } else {
             throw new CustomException("Username is already in use", HttpStatus.UNPROCESSABLE_ENTITY);
@@ -73,6 +72,6 @@ public class UserService {
     }
 
     public String refresh(String username) {
-        return jwtTokenProvider.createToken(username, userRepository.findByUsername(username).getAppUserRoles());
+        return jwtTokenProvider.createToken(username, userRepository.findByUsername(username).getAppUserRole());
     }
 }

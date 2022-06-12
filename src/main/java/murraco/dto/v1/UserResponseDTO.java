@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import murraco.model.AppUserRole;
+import murraco.enums.AppUserRole;
 
 @Data
 public class UserResponseDTO {

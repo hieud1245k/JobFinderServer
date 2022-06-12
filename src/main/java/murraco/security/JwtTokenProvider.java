@@ -1,15 +1,15 @@
 package murraco.security;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
-import murraco.model.AppUserRole;
+import murraco.enums.AppUserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -36,7 +36,7 @@ public class JwtTokenProvider {
   private String secretKey;
 
   @Value("${security.jwt.token.expire-length:3600000}")
-  private long validityInMilliseconds = 3600000; // 1h
+  private long validityInMilliseconds = 36000000; // 10h
 
   @Autowired
   private MyUserDetails myUserDetails;
@@ -60,6 +60,12 @@ public class JwtTokenProvider {
         .setExpiration(validity)//
         .signWith(SignatureAlgorithm.HS256, secretKey)//
         .compact();
+  }
+
+  public String createToken(String username, AppUserRole appUserRole) {
+    List<AppUserRole> appUserRoles = new ArrayList<>();
+    appUserRoles.add(appUserRole);
+    return createToken(username, appUserRoles);
   }
 
   public Authentication getAuthentication(String token) {

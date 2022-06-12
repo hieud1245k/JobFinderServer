@@ -9,4 +9,5 @@ import lombok.Setter;
 @Setter
 public class LoginRes {
     private String accessToken;
+    private Integer userRole;
 }

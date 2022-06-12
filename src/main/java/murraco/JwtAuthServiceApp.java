@@ -1,11 +1,6 @@
 package murraco;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import lombok.RequiredArgsConstructor;
-import murraco.model.AppUser;
-import murraco.model.AppUserRole;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

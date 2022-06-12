@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import murraco.dto.v1.LoginRes;
 import murraco.dto.v1.UserDataDTO;
 import murraco.dto.v1.UserResponseDTO;
-import murraco.model.AppUser;
+import murraco.mappers.UserMapper;
 import murraco.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +33,7 @@ public class UserController {
             @ApiResponse(code = 400, message = "Something went wrong"), //
             @ApiResponse(code = 422, message = "Invalid username/password supplied")})
     public ResponseEntity<LoginRes> login(@RequestBody UserDataDTO user) {
-        return ResponseEntity.ok(userService.signin(user.getUsername(), user.getPassword()));
+        return ResponseEntity.ok(userService.signIn(user.getUsername(), user.getPassword()));
     }
 
     @PostMapping("/sign-up")
@@ -42,8 +42,8 @@ public class UserController {
             @ApiResponse(code = 400, message = "Something went wrong"), //
             @ApiResponse(code = 403, message = "Access denied"), //
             @ApiResponse(code = 422, message = "Username is already in use")})
-    public ResponseEntity<?> signup(@ApiParam("Signup User") @RequestBody UserDataDTO user) {
-        return ResponseEntity.ok(userService.signup(modelMapper.map(user, AppUser.class)));
+    public ResponseEntity<?> signup(@ApiParam("Signup User") @RequestBody UserDataDTO userDataDTO) {
+        return ResponseEntity.ok(userService.signup(UserMapper.fromDTO(userDataDTO)));
     }
 
     @DeleteMapping(value = "/{username}")
@@ -72,7 +72,7 @@ public class UserController {
     }
 
     @GetMapping(value = "/profile")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CLIENT')")
+    @PreAuthorize("hasRole('ROLE_EMPLOYEE') or hasRole('ROLE_APPLICANT')")
     @ApiOperation(value = "${UserController.me}", response = UserResponseDTO.class, authorizations = {@Authorization(value = "apiKey")})
     @ApiResponses(value = {//
             @ApiResponse(code = 400, message = "Something went wrong"), //
@@ -83,7 +83,7 @@ public class UserController {
     }
 
     @GetMapping("/refresh")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CLIENT')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE') or hasRole('ROLE_APPLICANT')")
     public String refresh(HttpServletRequest req) {
         return userService.refresh(req.getRemoteUser());
     }

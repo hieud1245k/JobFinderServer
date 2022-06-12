@@ -19,7 +19,7 @@ public class JobController {
     private final JobService jobService;
 
     @GetMapping("/")
-    @PreAuthorize("hasRole('ROLE_CLIENT')")
+    @PreAuthorize("hasRole('ROLE_APPLICANT')")
     public ResponseEntity<JobPaging> getJobList(@RequestParam(defaultValue = "0") Integer pageNo,
                                                 @RequestParam(defaultValue = "10") Integer pageSize,
                                                 @RequestParam(defaultValue = "id") String sortBy) {
@@ -27,7 +27,7 @@ public class JobController {
     }
 
     @PostMapping("/save")
-    @PreAuthorize("hasRole('ROLE_CLIENT')")
+    @PreAuthorize("hasRole('ROLE_EMPLOYEE')")
     public ResponseEntity<Integer> saveJob(@RequestBody JobDTO jobDTO) {
         return ResponseEntity.ok(jobService.save(jobDTO));
     }

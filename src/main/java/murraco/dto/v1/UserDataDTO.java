@@ -1,11 +1,8 @@
 package murraco.dto.v1;
 
-import java.util.List;
-
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import murraco.model.AppUserRole;
 
 @Data
 @NoArgsConstructor
@@ -18,6 +15,5 @@ public class UserDataDTO {
   @ApiModelProperty(position = 2)
   private String password;
   @ApiModelProperty(position = 3)
-  List<AppUserRole> appUserRoles;
-
+  Integer appUserRole;
 }
