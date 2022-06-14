@@ -3,11 +3,13 @@ package murraco.controller;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import murraco.dto.v1.LoginRes;
+import murraco.dto.v1.UserActiveDTO;
 import murraco.dto.v1.UserDataDTO;
 import murraco.dto.v1.UserResponseDTO;
 import murraco.mappers.UserMapper;
 import murraco.service.UserService;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -43,7 +45,7 @@ public class UserController {
             @ApiResponse(code = 403, message = "Access denied"), //
             @ApiResponse(code = 422, message = "Username is already in use")})
     public ResponseEntity<?> signup(@ApiParam("Signup User") @RequestBody UserDataDTO userDataDTO) {
-        return ResponseEntity.ok(userService.signup(UserMapper.fromDTO(userDataDTO)));
+        return new ResponseEntity<>(userService.signup(userDataDTO), HttpStatus.CREATED);
     }
 
     @DeleteMapping(value = "/{username}")
@@ -94,6 +96,18 @@ public class UserController {
         if (auth != null) {
             new SecurityContextLogoutHandler().logout(request, response, auth);
         }
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/reset-active-code")
+    public ResponseEntity<?> resetActiveCode(@RequestParam("user_id") Integer userId) {
+        userService.resetActiveCode(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/active-user")
+    public ResponseEntity<?> activeUser(@RequestBody UserActiveDTO userActiveDTO) {
+        userService.activeUser(userActiveDTO);
         return ResponseEntity.ok().build();
     }
 }

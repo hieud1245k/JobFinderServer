@@ -2,7 +2,10 @@ package murraco.service;
 
 import lombok.RequiredArgsConstructor;
 import murraco.dto.v1.LoginRes;
+import murraco.dto.v1.UserActiveDTO;
+import murraco.dto.v1.UserDataDTO;
 import murraco.exception.CustomException;
+import murraco.mappers.UserMapper;
 import murraco.model.AppUser;
 import murraco.model.UserActive;
 import murraco.repository.UserActiveRepository;
@@ -16,6 +19,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -32,36 +38,41 @@ public class UserService {
 
     public LoginRes signIn(String username, String password) {
         try {
+            AppUser appUser = userRepository.findByUsernameAndDeletedDateNull(username);
+            UserActive userActive = userActiveRepository.findByUserIdAndDeletedDateNull(appUser.getId());
+            if (userActive != null) {
+                throw new CustomException("User isn't active yet", HttpStatus.NOT_ACCEPTABLE);
+            }
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
             return LoginRes.builder()
-                    .accessToken(jwtTokenProvider.createToken(username, userRepository.findByUsername(username).getAppUserRole()))
+                    .accessToken(jwtTokenProvider.createToken(username, appUser.getAppUserRole()))
                     .build();
         } catch (AuthenticationException e) {
             throw new CustomException("Invalid username/password supplied", HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
 
-    public LoginRes signup(AppUser appUser) {
-        if (!userRepository.existsByUsername(appUser.getUsername())) {
-            appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
-            userRepository.save(appUser);
-
-            UserActive userActive = new UserActive(appUser.getId());
-             userActiveRepository.save(userActive);
-
-            emailService.sendSimpleMessage(
-                    appUser.getEmail(),
-                    userActive.getActiveCode().toString(),
-                    "Your code: " + userActive.getActiveCode().toString()
-            );
-
-            return LoginRes.builder()
-                    .accessToken(jwtTokenProvider.createToken(appUser.getUsername(), appUser.getAppUserRole()))
-                    .userRole(appUser.getAppUserRole().getIndex())
-                    .build();
-        } else {
+    public Map<String, ?> signup(UserDataDTO userDataDTO) {
+        AppUser appUser = UserMapper.fromDTO(userDataDTO);
+        if (userRepository.existsByUsername(userDataDTO.getUsername())
+                        || userRepository.existsByEmail(userDataDTO.getEmail())) {
             throw new CustomException("Username is already in use", HttpStatus.UNPROCESSABLE_ENTITY);
         }
+        appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
+        userRepository.save(appUser);
+
+        UserActive userActive = new UserActive(appUser.getId());
+        userActiveRepository.save(userActive);
+
+        emailService.sendSimpleMessage(
+                appUser.getEmail(),
+                userActive.getActiveCode().toString(),
+                "Your code: " + userActive.getActiveCode().toString()
+        );
+
+        Map<String, Integer> response = new HashMap<>();
+        response.put("user_id", appUser.getId());
+        return response;
     }
 
     public void delete(String username) {
@@ -82,5 +93,23 @@ public class UserService {
 
     public String refresh(String username) {
         return jwtTokenProvider.createToken(username, userRepository.findByUsername(username).getAppUserRole());
+    }
+
+    public void resetActiveCode(Integer userId) {
+        UserActive userActive = userActiveRepository.findByUserIdAndDeletedDateNull(userId);
+        if (userActive == null) {
+            throw new CustomException("User is not found!", HttpStatus.NOT_FOUND);
+        }
+        userActive.generateActiveCode();
+        userActiveRepository.save(userActive);
+    }
+
+    public void activeUser(UserActiveDTO userActiveDTO) {
+        UserActive userActive = userActiveRepository.findByUserIdAndDeletedDateNull(userActiveDTO.getUserId());
+        if (userActive == null) {
+            throw new CustomException("User is not found!", HttpStatus.NOT_FOUND);
+        }
+        userActive.setDeletedDate(LocalDateTime.now());
+        userActiveRepository.save(userActive);
     }
 }
